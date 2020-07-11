@@ -92,15 +92,15 @@ s_action actions[38] = {
 RTC_PCF8523 rtc;
 bool rtcFound = false;
 bool rtcInitialized = false;
-const char *ssid = SSID;
-const char *password = PASSWD;
-const int D1 = 5;
-const int D2 = 4;
-
-const int D5 = 14;
-const int D6 = 12;
-const int D7 = 13;
-const int D8 = 15;
+const char *ssid = "GRENOUILLE_NETWORK";
+const char *password = "0123456789";
+//const int D1 = 5;
+//const int D2 = 4;
+//
+//const int D5 = 14;
+//const int D6 = 12;
+//const int D7 = 13;
+//const int D8 = 15;
 
 const int PWMA = D5;
 const int BRAKEA = D6;
@@ -142,9 +142,11 @@ String displayActions() {
   applyCompute = 1;
   String result = "";
   for (i = 0;  i < actions_nb; i++) {
+    
     snprintf ( temp, 400,
                "<p>action[%2d] : [%02d:%02d:%02d] - [%02d] secondes : dir=[%1d], vitesse=%4d</p>",
                i, actions[i].start.h, actions[i].start.mn, actions[i].start.s, actions[i].duration, actions[i].dir, actions[i].pwm);
+    
     result += temp;
   }
   return result;
@@ -152,27 +154,35 @@ String displayActions() {
 
 void handleRoot() {
   digitalWrite ( led, 1 );
-  char temp[400];
+  char temp[600];
   int sec = millis() / 1000;
   int min = sec / 60;
   int hr = min / 60;
+  const char root_html[]  = R"rawliteral(
+  <html>
+  <head>
+    <meta http-equiv='refresh' content='5'/>
+    <title>ESP8266 Demo</title>
+    <style>
+      body { background-color: #cccccc; font-family: Arial, Helvetica, Sans-Serif; Color: #000088; }
+    </style>
+  </head>
+  <body>
+    <h1>Hello from ESP8266!</h1>
+    <p>Uptime: %02d:%02d:%02d</p>
+    <ul>
+    <li><a href="/clock">horloge</li>
+    <li><a href="/setclock">setclock</li>
+    <li><a href="/status">status</li>
+    <li><a href="/motor">motor</li>
+    <li><a href="/displayactions">display actions</li>
+    <li><a href="/setParameter">setParameter</li>
+    </ul>
+  </body>
+</html>)rawliteral";
+  snprintf ( temp, 600,
 
-  snprintf ( temp, 400,
-
-             "<html>\
-  <head>\
-    <meta http-equiv='refresh' content='5'/>\
-    <title>ESP8266 Demo</title>\
-    <style>\
-      body { background-color: #cccccc; font-family: Arial, Helvetica, Sans-Serif; Color: #000088; }\
-    </style>\
-  </head>\
-  <body>\
-    <h1>Hello from ESP8266!</h1>\
-    <p>Uptime: %02d:%02d:%02d</p>\
-    <img src=\"/test.svg\" />\
-  </body>\
-</html>",
+ root_html,
 
              hr, min % 60, sec % 60
            );
@@ -237,6 +247,34 @@ void handleSetClock() {
   handleClock();
   delay(100);
   digitalWrite(led, 0);
+
+}
+
+void setParameter() {
+  const char index_html[]  = R"rawliteral(
+<!DOCTYPE HTML><html><head>
+  <title>ESP Input Form</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  </head><body>
+  <form action="/setclock">
+
+    h: <input type="text" name="h">
+    m: <input type="text" name="m">
+    s: <input type="text" name="s">    
+    <input type="submit" value="Submit">
+  </form><br>
+</body></html>)rawliteral";
+  server.send ( 200, "text/html", index_html );
+}
+
+void getParameter() {
+    String message;
+  message = "<html><head><title>Actions</title><style>body { background-color: #cccccc; font-family: Arial, Helvetica, Sans-Serif; Color: #000088; }</style></head><body>";
+ for ( uint8_t i = 0; i < server.args(); i++ ) {
+  message += server.argName(i) + " : " + server.arg(i) + "<br>";
+ }
+   message += "</body></html>";
+  server.send(200, "text/html", message);
 
 }
 
@@ -322,6 +360,7 @@ void handleReadRules() {
   readActions();
   server.send(200, "text/html", "<html><head><title>read rules</title></head><body>done !</body></html>");
 }
+
 void handleNotFound() {
   digitalWrite ( led, 1 );
   String message = "File Not Found\n\n";
@@ -347,7 +386,7 @@ void setup ( void ) {
   pinMode (D5, OUTPUT);
   pinMode (D6, OUTPUT);
   pinMode (D7, OUTPUT);
-  Serial.begin ( 115200 );
+  Serial.begin ( 57600 );
   WiFi.mode ( WIFI_STA );
   WiFi.begin ( ssid, password );
   Serial.println ( "" );
@@ -375,11 +414,14 @@ void setup ( void ) {
   server.on ( "/", handleRoot );
 
   server.on ( "/clock", handleClock);
-  server.on ( "/setclock", handleSetClock);
+  server.on ( "/setclock", HTTP_GET, handleSetClock);
   server.on ( "/motor", handleMotor);
   server.on ( "/displayactions", handleDisplayActions);
   server.on ( "/readRules", handleReadRules);
   server.on ( "/status", handleMotorStatus);
+  server.on ( "/setParameter", setParameter);
+  server.on ( "/getParameter", HTTP_GET, getParameter);
+  
   server.onNotFound ( handleNotFound );
   server.begin();
   Serial.println ( "HTTP server started" );
@@ -402,10 +444,10 @@ bool inTime (s_action action, DateTime current) {
   current_s = toSeconds(current);
   bool result = (start_s <= current_s) && (current_s <= (start_s + action.duration));
   snprintf(temp,400,"start_s = %d, end = %d",start_s,start_s+action.duration);
-  Serial.print(temp);
+  // Serial.print(temp);
   snprintf(temp,400,"current_s = %d - inTime = %s",current_s, result?"True":"False");
-  Serial.println(temp);  
-  Serial.println("");
+  // Serial.println(temp);  
+  // Serial.println("");
   return  result;
 }
 
