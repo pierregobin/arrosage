@@ -48,46 +48,48 @@ typedef struct {
   int pwm;
 } s_action;
 
+#define TEMPO_REV 100
+#define TEMPO_ON   60
 const int actions_nb = 38;
 s_action actions[38] = {
-  {{6, 0, 0}, 50, 0, 800},
-  {{6, 0, 10}, 30, 1, 1000},
-  {{7, 0, 0}, 50, 0, 800},
-  {{7, 0, 10}, 30, 1, 1000},
-  {{8, 0, 0}, 50, 0, 800},
-  {{8, 0, 10}, 30, 1, 1000},
-  {{9, 0, 0}, 50, 0, 800},
-  {{9, 0, 10}, 30, 1, 1000},
-  {{10, 0, 0}, 100, 0, 800},
-  {{10, 0, 10}, 60, 1, 1000},  
-  {{12, 00, 00}, 100, 0, 800},
-  {{12, 00, 10}, 45, 1, 1000},
-  {{13, 00, 00}, 100, 0, 800},
-  {{13, 00, 10}, 45, 1, 1000},
-  {{14, 00, 00}, 100, 0, 800},
-  {{14, 00, 10}, 45, 1, 1000},
-  {{14, 30, 00}, 100, 0, 800},
-  {{14, 30, 10}, 45, 1, 1000},
-  {{15, 00, 00}, 100, 0, 800},
-  {{15, 00, 10}, 45, 1, 1000},
-  {{15, 30, 00}, 100, 0, 800},
-  {{15, 30, 10}, 45, 1, 1000},
-  {{16, 00, 00}, 100, 0, 800},
-  {{16, 00, 10}, 45, 1, 1000},
-  {{16, 30, 00}, 100, 0, 800},
-  {{16, 30, 10}, 45, 1, 1000},
-  {{17, 00, 00}, 100, 0, 800},
-  {{17, 00, 10}, 45, 1, 1000},
-  {{18, 00, 00}, 100, 0, 800},
-  {{18, 00, 10}, 60, 1, 1000},
-  {{19, 00, 00}, 100, 0, 800},
-  {{19, 00, 10}, 60, 1, 1000},
-  {{20, 00, 00}, 100, 0, 800},
-  {{20, 00, 10}, 60, 1, 1000},
-  {{20, 40, 00}, 300, 0, 800},
-  {{20, 40, 10}, 270, 1, 1000},
-  {{21, 00, 00}, 150, 0, 800},
-  {{21, 00, 10}, 120, 1, 1000}
+  {{6, 0, 0}, TEMPO_REV, 0, 800},
+  {{6, 0, 10}, TEMPO_ON, 1, 1000},
+  {{7, 0, 0}, TEMPO_REV, 0, 800},
+  {{7, 0, 10}, TEMPO_ON, 1, 1000},
+  {{8, 0, 0}, TEMPO_REV, 0, 800},
+  {{8, 0, 10}, TEMPO_ON, 1, 1000},
+  {{9, 0, 0}, TEMPO_REV, 0, 800},
+  {{9, 0, 10}, TEMPO_ON, 1, 1000},
+  {{10, 0, 0}, TEMPO_REV, 0, 800},
+  {{10, 0, 10}, TEMPO_ON, 1, 1000},  
+  {{12, 00, 00}, TEMPO_REV, 0, 800},
+  {{12, 00, 10}, TEMPO_ON, 1, 1000},
+  {{13, 00, 00}, TEMPO_REV, 0, 800},
+  {{13, 00, 10}, TEMPO_ON, 1, 1000},
+  {{14, 00, 00}, TEMPO_REV, 0, 800},
+  {{14, 00, 10}, TEMPO_ON, 1, 1000},
+  {{14, 30, 00}, TEMPO_REV, 0, 800},
+  {{14, 30, 10}, TEMPO_ON, 1, 1000},
+  {{15, 00, 00}, TEMPO_REV, 0, 800},
+  {{15, 00, 10}, TEMPO_ON, 1, 1000},
+  {{15, 30, 00}, TEMPO_REV, 0, 800},
+  {{15, 30, 10}, TEMPO_ON, 1, 1000},
+  {{16, 00, 00}, TEMPO_REV, 0, 800},
+  {{16, 00, 10}, TEMPO_ON, 1, 1000},
+  {{16, 30, 00}, TEMPO_REV, 0, 800},
+  {{16, 30, 10}, TEMPO_ON, 1, 1000},
+  {{17, 00, 00}, TEMPO_REV, 0, 800},
+  {{17, 00, 10}, TEMPO_ON, 1, 1000},
+  {{18, 00, 00}, TEMPO_REV, 0, 800},
+  {{18, 00, 10}, TEMPO_ON, 1, 1000},
+  {{19, 00, 00}, TEMPO_REV, 0, 800},
+  {{19, 00, 10}, TEMPO_ON, 1, 1000},
+  {{20, 00, 00}, TEMPO_REV, 0, 800},
+  {{20, 00, 10}, TEMPO_ON, 1, 1000},
+  {{20, 40, 00}, 4*TEMPO_REV, 0, 800},
+  {{20, 40, 10}, 4*TEMPO_ON, 1, 1000},
+  {{21, 00, 00}, 3*TEMPO_REV, 0, 800},
+  {{21, 00, 10}, 3*TEMPO_ON, 1, 1000}
   };
 RTC_PCF8523 rtc;
 bool rtcFound = false;
@@ -194,21 +196,21 @@ void handleClock() {
   digitalWrite ( led, 1 );
   char temp[400];
   DateTime now = rtc.now();
-  snprintf ( temp, 400,
+  snprintf ( temp, 400,R"rawliteral(
 
-             "<html>\
-  <head>\
-    <meta http-equiv='refresh' content='5'/>\
-    <title>Clock</title>\
-    <style>\
-      body { background-color: #cccccc; font-family: Arial, Helvetica, Sans-Serif; Color: #000088; }\
-    </style>\
-  </head>\
-  <body>\
-    <h1>Clock from RTC</h1>\
-    <p>Uptime: %02d:%02d:%02d</p>\
-  </body>\
-</html>",
+             "<html>
+  <head>
+    <meta http-equiv='refresh' content='5'/>
+    <title>Clock</title>
+    <style>
+      body { background-color: #cccccc; font-family: Arial, Helvetica, Sans-Serif; Color: #000088; }
+    </style>
+  </head>
+  <body>
+    <h1>Clock from RTC</h1>
+    <p>Uptime: %02d:%02d:%02d</p>
+  </body>
+</html>)rawliteral",
 
              now.hour(), now.minute(), now.second()
            );
@@ -303,21 +305,21 @@ void handleMotor() {
     analogWrite(PWMA, pwm);
   digitalWrite(BRAKEA, brake);
   digitalWrite(DIRA,dir);
-  snprintf ( temp, 400,
-             "<html>\
-  <head>\
-    <title>Motor</title>\
-    <style>\
-      body { background-color: #cccccc; font-family: Arial, Helvetica, Sans-Serif; Color: #000088; }\
-    </style>\
-  </head>\
-  <body>\
-    <h1>Motor </h1>\
-    <p>brake : %01d</p>\
-    <p>pwm : %4d</p>\
-    <p>dir  : %01d</p>\
-  </body>\
-</html>",
+  snprintf ( temp, 400, R"rawliteral(
+             "<html>
+  <head>
+    <title>Motor</title>
+    <style>
+      body { background-color: #cccccc; font-family: Arial, Helvetica, Sans-Serif; Color: #000088; }
+    </style>
+  </head>
+  <body>
+    <h1>Motor </h1>
+    <p>brake : %01d</p>
+    <p>pwm : %4d</p>
+    <p>dir  : %01d</p>
+  </body>
+</html>)rawliteral",
 
              brake, pwm, dir
            );
@@ -327,20 +329,20 @@ void handleMotor() {
 
 void handleMotorStatus() {
     char temp[400];
-  snprintf ( temp, 400,
-             "<html>\
-  <head>\
-    <title>Motor Status</title>\
-    <style>\
-      body { background-color: #cccccc; font-family: Arial, Helvetica, Sans-Serif; Color: #000088; }\
-    </style>\
-  </head>\
-  <body>\
-    <h1>Motor </h1>\
-    <p>pwm : %4d</p>\
-    <p>dir  : %01d</p>\
-  </body>\
-</html>",
+  snprintf ( temp, 400,R"rawliteral(
+             "<html>
+  <head>
+    <title>Motor Status</title>
+    <style>
+      body { background-color: #cccccc; font-family: Arial, Helvetica, Sans-Serif; Color: #000088; }
+    </style>
+  </head>
+  <body>
+    <h1>Motor </h1>
+    <p>pwm : %4d</p>
+    <p>dir  : %01d</p>
+  </body>
+</html>")rawliteral",
 
              Pwm, Dir
            );
